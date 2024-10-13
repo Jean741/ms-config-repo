@@ -1,37 +1,20 @@
 #!/bin/bash
 
-# Variables
-DOWNLOAD_URL="https://raw.githubusercontent.com/Jean741/ms-config-repo/main/docker/docker-compose.yml"
-DEST_DIR="/mnt"
-NEW_FILE="$DEST_DIR/docker-compose.yml"
-OLD_FILE="$DEST_DIR/docker-compose-old.yml"
+# Changer de répertoire
+cd /mnt || { echo "Directory /mnt does not exist"; exit 1; }
 
-# Téléchargement du nouveau fichier docker-compose.yml
-echo "Téléchargement du nouveau fichier docker-compose.yml depuis GitHub..."
-curl -o "$NEW_FILE" "$DOWNLOAD_URL"
+# Télécharger le fichier docker-compose.yml depuis GitHub
+echo "Downloading docker-compose.yml from GitHub..."
+wget -q --show-progress https://raw.githubusercontent.com/Jean741/ms-config-repo/main/docker/docker-compose.yml -O docker-compose.yml
 
 # Vérifier si le téléchargement a réussi
 if [ $? -eq 0 ]; then
-  echo "Téléchargement réussi."
-
-  # Renommer l'ancien fichier en old s'il existe
-  if [ -f "$NEW_FILE" ]; then
-    echo "Renommage de l'ancien fichier en docker-compose-old.yml..."
-    mv "$NEW_FILE" "$OLD_FILE"
-  fi
-
-  # Essayer de déployer avec le nouveau fichier
-  echo "Tentative de déploiement avec le nouveau fichier docker-compose.yml..."
-  docker-compose -f "$NEW_FILE" up -d
-
-  # Vérifier si l'installation a réussi
-  if [ $? -eq 0 ]; then
-    echo "Déploiement réussi avec le nouveau fichier."
-  else
-    echo "Échec du déploiement. Restauration de l'ancien fichier..."
-    mv "$OLD_FILE" "$NEW_FILE"
-    docker-compose -f "$NEW_FILE" up -d
-  fi
+  echo "docker-compose.yml downloaded successfully."
 else
-  echo "Échec du téléchargement du fichier. Aucune modification effectuée."
+  echo "Failed to download docker-compose.yml. Exiting..."
+  exit 1
 fi
+
+# Exécuter Docker Compose
+echo "Starting Docker Compose..."
+sudo docker-compose -f /mnt/docker-compose.yml up -d
